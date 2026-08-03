@@ -1,8 +1,8 @@
 const { createClient } = require('redis');
 
-const host = process.env.REDIS_HOST || 'redis-15377.crce276.ap-south-1-3.ec2.cloud.redislabs.com';
+const host = process.env.REDIS_HOST ;
 const port = parseInt(process.env.REDIS_PORT || '15377', 10);
-const password = process.env.REDIS_PASSWORD || 'fQaGVyDwk7ySjSzRlBXCVE8uwcajLRhp';
+const password = process.env.REDIS_PASSWORD ;
 const username = process.env.REDIS_USER || 'default';
 
 const redisClient = createClient({
