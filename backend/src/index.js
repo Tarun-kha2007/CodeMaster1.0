@@ -11,6 +11,8 @@ const submitRouter = require("./routes/submit");
 const aiRouter = require('./routes/aiChatting');
 const cors = require('cors');
 
+const PORT = process.env.PORT || 3000;
+
 app.set('trust proxy', 1);
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://code-master1-0.vercel.app';
