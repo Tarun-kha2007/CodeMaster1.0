@@ -6,6 +6,9 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await axiosClient.post('/user/register', userData);
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       return response.data.user;
     } catch (error) {
       const msg = error.response?.data?.message || (typeof error.response?.data === 'string' ? error.response.data : null) || error.message || 'Registration failed';
@@ -19,6 +22,9 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axiosClient.post('/user/login', credentials);
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       return response.data.user;
     } catch (error) {
       const msg = error.response?.data?.message || (typeof error.response?.data === 'string' ? error.response.data : null) || error.message || 'Invalid email or password';
@@ -44,8 +50,10 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await axiosClient.post('/user/logout');
+      localStorage.removeItem('token');
       return null;
     } catch (error) {
+      localStorage.removeItem('token');
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
   }
@@ -115,6 +123,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+        localStorage.removeItem('token');
         // Do NOT set state.error on checkAuth failure so it doesn't trigger toast notifications
       })
   

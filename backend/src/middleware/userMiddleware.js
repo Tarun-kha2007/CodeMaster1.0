@@ -4,7 +4,13 @@ const redisClient = require("../config/redis");
 
 const userMiddleware = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
+    let token = req.cookies?.token;
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+    }
     if (!token) throw new Error("Token is not present");
     const jwtSecret = process.env.JWT_SECRET || "48dda0e1ee047700c9e81fa470e825f8cd790f94d9bbc8b1d6ca16426847d44e";
     const payload = jwt.verify(token, jwtSecret);

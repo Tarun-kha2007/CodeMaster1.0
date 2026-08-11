@@ -8,6 +8,15 @@ const sendEmail = require("../utils/Eamil");
 
 const JWT_SECRET = process.env.JWT_SECRET || "48dda0e1ee047700c9e81fa470e825f8cd790f94d9bbc8b1d6ca16426847d44e";
 
+const isProduction = process.env.NODE_ENV === 'production' || (process.env.FRONTEND_URL && process.env.FRONTEND_URL.startsWith('https'));
+
+const getCookieOptions = () => ({
+  maxAge: 60 * 60 * 1000,
+  httpOnly: true,
+  sameSite: isProduction ? 'none' : 'lax',
+  secure: isProduction,
+});
+
 const register = async (req, res) => {
   try {
     validate(req.body);
@@ -43,7 +52,7 @@ const register = async (req, res) => {
       role: user.role,
     };
 
-    res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
+    res.cookie("token", token, getCookieOptions());
 
     try {
       await sendEmail("register", {
@@ -56,6 +65,7 @@ const register = async (req, res) => {
 
     res.status(201).json({
       user: reply,
+      token,
       message: "Registered Successfully",
     });
   } catch (err) {
@@ -125,9 +135,10 @@ const login = async (req, res) => {
       JWT_SECRET,
       { expiresIn: 60 * 60 }
     );
-    res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
+    res.cookie("token", token, getCookieOptions());
     res.status(200).json({
       user: reply,
+      token,
       message: "Login Successfully",
     });
   } catch (err) {
@@ -138,7 +149,7 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const { token } = req.cookies;
+    const token = req.cookies?.token || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : null);
     if (token) {
       const payload = jwt.decode(token);
       if (payload?.exp) {
@@ -146,7 +157,12 @@ const logout = async (req, res) => {
         await redisClient.expireAt(`token:${token}`, payload.exp);
       }
     }
-    res.cookie("token", null, { expires: new Date(Date.now()) });
+    res.cookie("token", "", {
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
+    });
     res.send("Logged Out Successfully");
   } catch (err) {
     res.status(401).send("Error :" + err);
@@ -174,8 +190,8 @@ const adminRegister = async (req, res) => {
       JWT_SECRET,
       { expiresIn: 60 * 60 }
     );
-    res.cookie("token", token, { maxAge: 60 * 60 * 1000 });
-    res.status(201).send("User Registered Successfully");
+    res.cookie("token", token, getCookieOptions());
+    res.status(201).json({ message: "User Registered Successfully", token });
   } catch (err) {
     res.status(400).send("Error" + err);
   }
