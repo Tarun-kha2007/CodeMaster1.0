@@ -37,7 +37,7 @@ function App() {
     <>
       <Toaster position="top-center" />
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate to="/signup" />} />
+        <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate to="/login" />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/" /> : <Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -52,8 +52,8 @@ function App() {
         <Route path="/admin/video" element={isAuthenticated && user?.role === 'admin' ? <AdminVideo /> : <Navigate to="/" />} />
         <Route path="/admin/upload/:problemId" element={isAuthenticated && user?.role === 'admin' ? <AdminUpload /> : <Navigate to="/" />} />
         
-        {/* Problem View Route */}
-        <Route path="/problem/:problemId" element={<ProblemPage />} />
+        {/* Problem View Route - Redirect to /login if user is not authenticated */}
+        <Route path="/problem/:problemId" element={isAuthenticated ? <ProblemPage /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>

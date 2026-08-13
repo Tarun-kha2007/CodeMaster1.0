@@ -1,53 +1,69 @@
 const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS;
+  const emailHost = process.env.EMAIL_HOST;
+
+  // Use Nodemailer's built-in 'gmail' service if host is omitted, is smtp.gmail.com, or user is @gmail.com
+  if (!emailHost || emailHost === 'smtp.gmail.com' || (emailUser && emailUser.endsWith('@gmail.com'))) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser,
+        pass: emailPass
+      },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+  }
+
+  // Custom SMTP fallback
   const port = parseInt(process.env.EMAIL_PORT || '465', 10);
   const isSecure = process.env.EMAIL_SECURE !== undefined
     ? process.env.EMAIL_SECURE === 'true'
     : port === 465;
 
-  const transportConfig = {
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  return nodemailer.createTransport({
+    host: emailHost,
     port: port,
     secure: isSecure,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: emailUser,
+      pass: emailPass
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
     tls: {
       rejectUnauthorized: false
     }
-  };
-
-  // If using standard Gmail host without custom host setting, service: 'gmail' improves reliability
-  if ((!process.env.EMAIL_HOST || process.env.EMAIL_HOST === 'smtp.gmail.com') && port === 465) {
-    transportConfig.service = 'gmail';
-  }
-
-  return nodemailer.createTransport(transportConfig);
+  });
 };
 
 const sendEmail = async (type, userData) => {
+  if (!emailTemplates[type]) {
+    throw new Error(`Invalid email type: ${type}`);
+  }
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('❌ Error: EMAIL_USER or EMAIL_PASS environment variables are missing on the server.');
+    throw new Error('Server email configuration missing (EMAIL_USER / EMAIL_PASS)');
+  }
+
   try {
-    if (!emailTemplates[type]) {
-      throw new Error('Invalid email type');
-    }
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn('⚠️ Warning: EMAIL_USER or EMAIL_PASS environment variables are not set.');
-    }
-
     const transporter = createTransporter();
     const mailOptions = emailTemplates[type](userData);
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ ${type} email sent to ${userData.emailId}`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ ${type} email sent successfully to ${userData.emailId}:`, info.response || info.messageId);
     return true;
   } catch (error) {
-    console.error('❌ Error sending email:', error);
-    return false;
+    console.error(`❌ Error sending ${type} email to ${userData?.emailId}:`, error.message);
+    throw error;
   }
 };
 

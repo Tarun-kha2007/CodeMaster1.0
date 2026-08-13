@@ -95,7 +95,10 @@ const preLogin = async (req, res) => {
     try {
       await sendEmail("otp", { emailId: normalizedEmail, otp, firstName: user.firstName });
     } catch (emailErr) {
-      console.error("OTP email warning:", emailErr);
+      console.error("OTP email delivery failed:", emailErr);
+      return res.status(500).json({ 
+        message: "Failed to send OTP email: " + (emailErr.message || "Email connection timed out. Please check server email credentials.") 
+      });
     }
 
     console.log(`Pre-login OTP sent to ${normalizedEmail}: ${otp}`);
