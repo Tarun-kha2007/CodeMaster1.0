@@ -43,7 +43,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  //allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  // allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 app.use(express.json());
@@ -55,22 +55,22 @@ app.use('/submission', submitRouter);
 app.use('/ai', aiRouter);
 
 const InitalizeConnection = async () => {
-    try {
-        await main();
-        
-        try {
-            await redisClient.connect();
-        } catch (redisErr) {
-            console.log("⚠️ Redis Note: Redis client not connected (running in fallback mode)");
-        }
+  try {
+    await main();
 
-        app.listen(PORT, () => {
-            console.log("🚀 Server listening at port number: " + PORT);
-        });
-    } catch (err) {
-        console.log("Initialization Error: " + err);
-        process.exit(1);
+    try {
+      await redisClient.connect();
+    } catch (redisErr) {
+      console.log("⚠️ Redis Note: Redis client not connected (running in fallback mode)");
     }
+
+    app.listen(PORT, () => {
+      console.log("🚀 Server listening at port number: " + PORT);
+    });
+  } catch (err) {
+    console.log("Initialization Error: " + err);
+    process.exit(1);
+  }
 };
 
 InitalizeConnection();

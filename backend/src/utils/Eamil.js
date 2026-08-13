@@ -1,28 +1,52 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter using environment variables
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_PORT || '587', 10),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+const createTransporter = () => {
+  const port = parseInt(process.env.EMAIL_PORT || '465', 10);
+  const isSecure = process.env.EMAIL_SECURE !== undefined
+    ? process.env.EMAIL_SECURE === 'true'
+    : port === 465;
+
+  const transportConfig = {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: port,
+    secure: isSecure,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    tls: {
+      rejectUnauthorized: false
+    }
+  };
+
+  // If using standard Gmail host without custom host setting, service: 'gmail' improves reliability
+  if ((!process.env.EMAIL_HOST || process.env.EMAIL_HOST === 'smtp.gmail.com') && port === 465) {
+    transportConfig.service = 'gmail';
   }
-});
+
+  return nodemailer.createTransport(transportConfig);
+};
 
 const sendEmail = async (type, userData) => {
   try {
     if (!emailTemplates[type]) {
       throw new Error('Invalid email type');
     }
-    
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn('⚠️ Warning: EMAIL_USER or EMAIL_PASS environment variables are not set.');
+    }
+
+    const transporter = createTransporter();
     const mailOptions = emailTemplates[type](userData);
     await transporter.sendMail(mailOptions);
-    console.log(`${type} email sent to ${userData.emailId}`);
+    console.log(`✅ ${type} email sent to ${userData.emailId}`);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error sending email:', error);
     return false;
   }
 };
@@ -56,7 +80,7 @@ const emailTemplates = {
       </div>
     `
   }),
-  
+
   login: (user) => ({
     from: senderAddress(),
     to: user.emailId,
