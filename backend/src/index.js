@@ -33,6 +33,7 @@ if (process.env.FRONTEND_URL) {
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log(`the origin is : ${origin}`)
     if (!origin) return callback(null, true);
     const cleanedOrigin = origin.replace(/\/+$/, '');
     if (allowedOrigins.includes(cleanedOrigin) || cleanedOrigin.endsWith('.vercel.app')) {
