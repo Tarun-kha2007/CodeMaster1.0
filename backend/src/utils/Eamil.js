@@ -4,18 +4,19 @@ const createTransporter = () => {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_PASS;
   const emailHost = process.env.EMAIL_HOST;
-
-  // Use Nodemailer's built-in 'gmail' service if host is omitted, is smtp.gmail.com, or user is @gmail.com
+  //console.log(emailUser, emailPass, emailHost)
   if (!emailHost || emailHost === 'smtp.gmail.com' || (emailUser && emailUser.endsWith('@gmail.com'))) {
     return nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT, 10) : 587,
+      secure: process.env.EMAIL_PORT == 465 ? true : false, // true for 465, false for other ports
       auth: {
         user: emailUser,
         pass: emailPass
       },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 15000,
+      connectionTimeout: 60000,
+      greetingTimeout: 60000,
+      socketTimeout: 60000,
       tls: {
         rejectUnauthorized: false
       }
@@ -36,9 +37,9 @@ const createTransporter = () => {
       user: emailUser,
       pass: emailPass
     },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 15000,
+    connectionTimeout: 60000,
+    greetingTimeout: 60000,
+    socketTimeout: 60000,
     tls: {
       rejectUnauthorized: false
     }

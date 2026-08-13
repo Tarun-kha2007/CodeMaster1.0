@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://codemaster1-0.onrender.com';
+const baseURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || (import.meta.env.MODE === 'production' ? 'https://codemaster1-0.onrender.com' : 'http://localhost:3000');
 
 const axiosClient = axios.create({
     baseURL: baseURL,

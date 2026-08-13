@@ -101,7 +101,9 @@ const preLogin = async (req, res) => {
       });
     }
 
-    console.log(`Pre-login OTP sent to ${normalizedEmail}: ${otp}`);
+    console.log(`\n=========================================`);
+    console.log(`🔑 Pre-login OTP for ${normalizedEmail}: ${otp}`);
+    console.log(`=========================================\n`);
     return res.status(200).json({ otpRequired: true, message: "Credentials valid. OTP sent to your email." });
   } catch (err) {
     console.error("preLogin error:", err);
@@ -234,7 +236,9 @@ const sendOtp = async (req, res) => {
 
     await sendEmail("otp", { emailId: normalizedEmail, otp, firstName });
 
-    console.log(`OTP sent to ${normalizedEmail}: ${otp}`);
+    console.log(`\n=========================================`);
+    console.log(`🔑 OTP sent to ${normalizedEmail}: ${otp}`);
+    console.log(`=========================================\n`);
     res.status(200).json({ message: "OTP sent successfully" });
   } catch (err) {
     console.error("sendOtp error:", err);

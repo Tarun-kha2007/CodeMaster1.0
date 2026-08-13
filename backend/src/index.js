@@ -15,13 +15,12 @@ const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://code-master1-0.vercel.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 const allowedOrigins = [
+  FRONTEND_URL,
   'https://code-master1-0.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000'
+  'http://localhost:5173'
 ];
 
 if (process.env.FRONTEND_URL) {
